@@ -1,0 +1,100 @@
+// Supabase + localStorage ハイブリッド管理
+
+import { supabase } from './supabase';
+
+const STORAGE_KEY = 'sheets-manager-data';
+const USER_ID = 'default';
+
+export const defaultData = {
+  tree: [],
+};
+
+// Supabaseからロード（失敗時はlocalStorageにフォールバック）
+export async function loadData() {
+  try {
+    const { data, error } = await supabase
+      .from('trees')
+      .select('data')
+      .eq('user_id', USER_ID)
+      .single();
+    if (error) throw error;
+    const loaded = data.data;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
+    return loaded;
+  } catch {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : defaultData;
+  }
+}
+
+// Supabaseに保存（同時にlocalStorageにもキャッシュ）
+export async function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  try {
+    await supabase
+      .from('trees')
+      .update({ data, updated_at: new Date().toISOString() })
+      .eq('user_id', USER_ID);
+  } catch (e) {
+    console.warn('Supabase save failed, data saved locally:', e);
+  }
+}
+
+// ユニークID生成
+export function genId() {
+  return `id-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+// ツリーから特定IDのノードを検索して操作するユーティリティ
+export function findNode(tree, id) {
+  for (const node of tree) {
+    if (node.id === id) return node;
+    if (node.children) {
+      const found = findNode(node.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+export function findParent(tree, id, parent = null) {
+  for (const node of tree) {
+    if (node.id === id) return parent;
+    if (node.children) {
+      const found = findParent(node.children, id, node);
+      if (found !== undefined) return found;
+    }
+  }
+  return undefined;
+}
+
+export function removeNode(tree, id) {
+  return tree
+    .filter((n) => n.id !== id)
+    .map((n) =>
+      n.children ? { ...n, children: removeNode(n.children, id) } : n
+    );
+}
+
+export function insertNode(tree, targetId, node, position = 'inside') {
+  if (position === 'inside') {
+    return tree.map((n) => {
+      if (n.id === targetId && n.type === 'folder') {
+        return { ...n, children: [...(n.children || []), node] };
+      }
+      if (n.children) {
+        return { ...n, children: insertNode(n.children, targetId, node, position) };
+      }
+      return n;
+    });
+  }
+  return tree;
+}
+
+export function updateNode(tree, id, updates) {
+  return tree.map((n) => {
+    if (n.id === id) return { ...n, ...updates };
+    if (n.children) return { ...n, children: updateNode(n.children, id, updates) };
+    return n;
+  });
+}
