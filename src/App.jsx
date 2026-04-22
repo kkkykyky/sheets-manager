@@ -138,18 +138,6 @@ function App() {
         </div>
       </aside>
 
-      <main className="main">
-        <div className="welcome">
-          <div className="welcome-icon">📊</div>
-          <h2>Google Sheets マネージャー</h2>
-          <p>左のツリーからシートをクリックすると新しいタブで開きます。</p>
-          <ul className="tips">
-            <li>📁 フォルダでシートを階層管理</li>
-            <li>🔗 シートタブ指定URL（#gid=...）も登録可能</li>
-            <li>✏️ 名前やURLはいつでも編集できます</li>
-          </ul>
-        </div>
-      </main>
 
       {modal && (
         <Modal

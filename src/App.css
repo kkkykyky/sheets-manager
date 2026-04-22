@@ -25,15 +25,18 @@ body {
   height: 100vh;
 }
 
+/* サイドバーをフル幅に */
+.sidebar {
+  flex: 1;
+}
+
 /* ===== SIDEBAR ===== */
 .sidebar {
-  width: 280px;
-  min-width: 220px;
+  width: 100%;
   background: #1e1e2e;
   color: #cdd6f4;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #313244;
 }
 
 .sidebar-header {
@@ -79,14 +82,70 @@ body {
   user-select: none;
 }
 
+.tree-row-wrap {
+  display: flex;
+  align-items: center;
+}
+
+/* 縦線のスペーサー */
+.tree-indent {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.tree-line-v {
+  width: 20px;
+  position: relative;
+  flex-shrink: 0;
+}
+.tree-line-v::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #45475a;
+}
+
+/* 横枝線 */
+.tree-branch {
+  width: 20px;
+  height: 28px;
+  flex-shrink: 0;
+  position: relative;
+}
+.tree-branch::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 0;
+  bottom: 14px;
+  width: 1px;
+  background: #45475a;
+}
+.tree-branch::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 10px;
+  height: 1px;
+  background: #45475a;
+}
+.tree-branch.last::before {
+  bottom: 14px;
+}
+
 .tree-row {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
+  padding: 5px 12px 5px 4px;
   cursor: pointer;
   border-radius: 4px;
-  margin: 1px 6px;
+  margin: 1px 6px 1px 0;
   position: relative;
   transition: background 0.1s;
 }
@@ -174,10 +233,15 @@ body {
   margin: 4px 0;
 }
 
+.tree-empty-row {
+  display: flex;
+  align-items: center;
+}
+
 .tree-empty {
   font-size: 11px;
   color: #585b70;
-  padding: 3px 0;
+  padding: 3px 4px;
   font-style: italic;
 }
 
@@ -213,44 +277,6 @@ body {
   background: #45475a;
 }
 
-/* ===== MAIN ===== */
-.main {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f5f6fa;
-}
-
-.welcome {
-  text-align: center;
-  color: #888;
-}
-.welcome-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-.welcome h2 {
-  font-size: 20px;
-  color: #444;
-  margin-bottom: 8px;
-}
-.welcome p {
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-.tips {
-  list-style: none;
-  display: inline-block;
-  text-align: left;
-  font-size: 13px;
-  line-height: 2;
-  background: #fff;
-  padding: 16px 24px;
-  border-radius: 12px;
-  border: 1px solid #e0e0e0;
-  color: #555;
-}
 
 /* ===== MOBILE ===== */
 @media (max-width: 600px) {
