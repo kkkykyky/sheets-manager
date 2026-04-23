@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { loadData, saveData, genId, removeNode, insertNode, updateNode, defaultData } from './store';
 import TreeNode from './components/TreeNode';
+import GridView from './components/GridView';
 import Modal from './components/Modal';
 import './App.css';
 
@@ -8,6 +9,7 @@ function App() {
   const [data, setData] = useState(defaultData);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // 'tree' | 'grid'
 
   useEffect(() => {
     loadData().then((d) => {
@@ -131,30 +133,53 @@ function App() {
           <div className="header-top">
             <span className="app-logo">📊</span>
             <h1>Sheets Manager</h1>
+            <div className="view-toggle">
+              <button
+                className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
+                title="アイコン表示"
+              >⊞</button>
+              <button
+                className={`toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
+                onClick={() => setViewMode('tree')}
+                title="ツリー表示"
+              >☰</button>
+            </div>
           </div>
           <div className="root-actions">
             <button className="btn-add" onClick={() => handleAddFolder('__root__')}>📁 フォルダ追加</button>
             <button className="btn-add" onClick={() => handleAddLink('__root__')}>🔗 リンク追加</button>
           </div>
         </div>
-        <nav className="tree">
-          {data.tree.length === 0 && (
-            <p className="empty">フォルダまたはリンクを追加してください</p>
-          )}
-          {data.tree.map((node, i) => (
-            <TreeNode
-              key={node.id}
-              node={node}
-              onAddFolder={handleAddFolder}
-              onAddLink={handleAddLink}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onMove={handleMove}
-              onDragMove={handleDragMove}
-              isLast={i === data.tree.length - 1}
-            />
-          ))}
-        </nav>
+        {viewMode === 'tree' ? (
+          <nav className="tree">
+            {data.tree.length === 0 && (
+              <p className="empty">フォルダまたはリンクを追加してください</p>
+            )}
+            {data.tree.map((node, i) => (
+              <TreeNode
+                key={node.id}
+                node={node}
+                onAddFolder={handleAddFolder}
+                onAddLink={handleAddLink}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onMove={handleMove}
+                onDragMove={handleDragMove}
+                isLast={i === data.tree.length - 1}
+              />
+            ))}
+          </nav>
+        ) : (
+          <GridView
+            tree={data.tree}
+            onAddFolder={handleAddFolder}
+            onAddLink={handleAddLink}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onMove={handleMove}
+          />
+        )}
         <div className="sidebar-footer">
           <button onClick={handleExport} title="データをファイルに保存">💾 バックアップ保存</button>
           <label className="btn-import" title="保存したファイルから復元">
