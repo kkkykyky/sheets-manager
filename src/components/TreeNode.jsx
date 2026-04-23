@@ -5,7 +5,7 @@ const FOLDER_COLORS = ['#1a73e8', '#34a853', '#f29900', '#e37400', '#a142f4'];
 const getFolderIcon = (depth, open) => open ? '📂' : '📁';
 
 export default function TreeNode({
-  node, onAddFolder, onAddLink, onEdit, onDelete, onMove, onDragMove,
+  node, onAddFolder, onAddLink, onEdit, onDelete, onMove, onDragMove, onTogglePin,
   depth = 0, isLast = false
 }) {
   const [open, setOpen] = useState(true);
@@ -88,14 +88,15 @@ export default function TreeNode({
           onDrop={handleDrop}
         >
           <span className="drag-handle" title="ドラッグして移動">⠿</span>
-
           <span className="node-icon">
-            {isFolder
-              ? getFolderIcon(depth, open)
-              : '🔗'}
+            {isFolder ? getFolderIcon(depth, open) : '🔗'}
           </span>
-
           <span className="tree-label">{node.name}</span>
+          <button
+            className={`pin-btn ${node.pinned ? 'pinned' : ''}`}
+            onClick={(e) => { e.stopPropagation(); onTogglePin(node.id); }}
+            title={node.pinned ? 'お気に入り解除' : 'お気に入り追加'}
+          >{node.pinned ? '⭐' : '☆'}</button>
 
           <div className="tree-menu-wrap">
             <button className="menu-btn" onClick={handleMenuToggle} title="メニュー">⋮</button>
@@ -130,6 +131,7 @@ export default function TreeNode({
                 onDelete={onDelete}
                 onMove={onMove}
                 onDragMove={onDragMove}
+                onTogglePin={onTogglePin}
                 depth={depth + 1}
                 isLast={i === node.children.length - 1}
               />

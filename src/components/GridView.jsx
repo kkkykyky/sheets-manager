@@ -17,7 +17,7 @@ function getTheme(index) {
 
 export default function GridView({
   tree, path, onPathChange,
-  onAddFolder, onAddLink, onEdit, onDelete, onMove, onDragMove
+  onAddFolder, onAddLink, onEdit, onDelete, onMove, onDragMove, onTogglePin
 }) {
   const [menuOpen, setMenuOpen] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
@@ -142,6 +142,12 @@ export default function GridView({
                 )}
               </div>
               <span className="icon-label">{node.name}</span>
+
+              <button
+                className={`icon-pin-btn ${node.pinned ? 'pinned' : ''}`}
+                onClick={(e) => { e.stopPropagation(); onTogglePin(node.id); }}
+                title={node.pinned ? 'お気に入り解除' : 'お気に入り追加'}
+              >{node.pinned ? '⭐' : '☆'}</button>
 
               <button
                 className="icon-menu-btn"

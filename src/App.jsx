@@ -1,16 +1,47 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { loadData, saveData, genId, removeNode, insertNode, updateNode, defaultData } from './store';
 import TreeNode from './components/TreeNode';
 import GridView from './components/GridView';
 import Modal from './components/Modal';
+import SearchResults from './components/SearchResults';
+import PinnedSection from './components/PinnedSection';
 import './App.css';
+
+// ツリー全体を検索して一致するノードとパスを返す
+function searchTree(tree, query) {
+  const results = [];
+  const walk = (nodes, path) => {
+    for (const node of nodes) {
+      if (node.name.toLowerCase().includes(query.toLowerCase())) {
+        results.push({ node, path: [...path] });
+      }
+      if (node.children) walk(node.children, [...path, node.name]);
+    }
+  };
+  walk(tree, []);
+  return results;
+}
+
+// ピン留めされたノードを全て取得
+function getPinnedNodes(tree) {
+  const results = [];
+  const walk = (nodes) => {
+    for (const node of nodes) {
+      if (node.pinned) results.push(node);
+      if (node.children) walk(node.children);
+    }
+  };
+  walk(tree);
+  return results;
+}
 
 function App() {
   const [data, setData] = useState(defaultData);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
-  const [viewMode, setViewMode] = useState('grid'); // 'tree' | 'grid'
-  const [gridPath, setGridPath] = useState([]); // グリッドの現在地パス
+  const [viewMode, setViewMode] = useState('grid');
+  const [gridPath, setGridPath] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadData().then((d) => {
@@ -21,25 +52,23 @@ function App() {
 
   const persist = useCallback((newData) => {
     setData(newData);
-    saveData(newData); // 非同期だがUIはすぐ更新
+    saveData(newData);
   }, []);
 
   const handleAddFolder = (parentId) => setModal({ type: 'addFolder', targetId: parentId });
   const handleAddLink = (parentId) => setModal({ type: 'addLink', targetId: parentId });
 
-  // ヘッダーボタン：グリッドモードなら現在のフォルダ内に追加
   const handleAddFolderContextual = () => {
     const targetId = (viewMode === 'grid' && gridPath.length > 0)
-      ? gridPath[gridPath.length - 1].id
-      : '__root__';
+      ? gridPath[gridPath.length - 1].id : '__root__';
     handleAddFolder(targetId);
   };
   const handleAddLinkContextual = () => {
     const targetId = (viewMode === 'grid' && gridPath.length > 0)
-      ? gridPath[gridPath.length - 1].id
-      : '__root__';
+      ? gridPath[gridPath.length - 1].id : '__root__';
     handleAddLink(targetId);
   };
+
   const handleEdit = (node) => setModal({ type: node.type === 'folder' ? 'editFolder' : 'editLink', node });
   const handleMove = (node) => setModal({ type: 'move', node });
 
@@ -48,17 +77,29 @@ function App() {
     persist({ ...data, tree: removeNode(data.tree, id) });
   };
 
-  // ドラッグ&ドロップによる移動
-  const handleDragMove = useCallback((fromId, toId) => {
+  // お気に入りトグル
+  const handleTogglePin = useCallback((id) => {
     const node = (() => {
       const find = (tree) => {
         for (const n of tree) {
-          if (n.id === fromId) return n;
+          if (n.id === id) return n;
           if (n.children) { const f = find(n.children); if (f) return f; }
         }
       };
       return find(data.tree);
     })();
+    if (!node) return;
+    persist({ ...data, tree: updateNode(data.tree, id, { pinned: !node.pinned }) });
+  }, [data, persist]);
+
+  const handleDragMove = useCallback((fromId, toId) => {
+    const find = (tree) => {
+      for (const n of tree) {
+        if (n.id === fromId) return n;
+        if (n.children) { const f = find(n.children); if (f) return f; }
+      }
+    };
+    const node = find(data.tree);
     if (!node) return;
     let newTree = removeNode(data.tree, fromId);
     newTree = insertNode(newTree, toId, node);
@@ -104,8 +145,7 @@ function App() {
     const file = e.target.files[0];
     if (!file) return;
     if (!confirm('バックアップから復元すると、現在のデータが上書きされます。よろしいですか？')) {
-      e.target.value = '';
-      return;
+      e.target.value = ''; return;
     }
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -133,6 +173,15 @@ function App() {
     return result;
   };
 
+  const searchResults = useMemo(() =>
+    searchQuery.trim() ? searchTree(data.tree, searchQuery) : [],
+    [data.tree, searchQuery]
+  );
+
+  const pinnedNodes = useMemo(() => getPinnedNodes(data.tree), [data.tree]);
+
+  const isSearching = searchQuery.trim().length > 0;
+
   if (loading) {
     return (
       <div className="app-loading">
@@ -144,60 +193,90 @@ function App() {
   return (
     <div className="app">
       <aside className="sidebar">
+        {/* ヘッダー */}
         <div className="sidebar-header">
           <div className="header-top">
             <span className="app-logo">📊</span>
             <h1>Sheets Manager</h1>
             <div className="view-toggle">
-              <button
-                className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
-                onClick={() => setViewMode('grid')}
-                title="アイコン表示"
-              >⊞</button>
-              <button
-                className={`toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
-                onClick={() => setViewMode('tree')}
-                title="ツリー表示"
-              >☰</button>
+              <button className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')} title="アイコン表示">⊞</button>
+              <button className={`toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
+                onClick={() => setViewMode('tree')} title="ツリー表示">☰</button>
             </div>
           </div>
-          <div className="root-actions">
-            <button className="btn-add" onClick={handleAddFolderContextual}>📁 フォルダ追加</button>
-            <button className="btn-add" onClick={handleAddLinkContextual}>🔗 リンク追加</button>
-          </div>
-        </div>
-        {viewMode === 'tree' ? (
-          <nav className="tree">
-            {data.tree.length === 0 && (
-              <p className="empty">フォルダまたはリンクを追加してください</p>
+
+          {/* 検索バー */}
+          <div className="search-bar">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="シート・フォルダを検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button className="search-clear" onClick={() => setSearchQuery('')}>✕</button>
             )}
-            {data.tree.map((node, i) => (
-              <TreeNode
-                key={node.id}
-                node={node}
+          </div>
+
+          {!isSearching && (
+            <div className="root-actions">
+              <button className="btn-add" onClick={handleAddFolderContextual}>📁 フォルダ追加</button>
+              <button className="btn-add" onClick={handleAddLinkContextual}>🔗 リンク追加</button>
+            </div>
+          )}
+        </div>
+
+        {/* コンテンツ */}
+        {isSearching ? (
+          <SearchResults
+            results={searchResults}
+            onTogglePin={handleTogglePin}
+          />
+        ) : (
+          <>
+            <PinnedSection
+              pinnedNodes={pinnedNodes}
+              onTogglePin={handleTogglePin}
+            />
+            {viewMode === 'tree' ? (
+              <nav className="tree">
+                {data.tree.length === 0 && (
+                  <p className="empty">フォルダまたはリンクを追加してください</p>
+                )}
+                {data.tree.map((node, i) => (
+                  <TreeNode
+                    key={node.id}
+                    node={node}
+                    onAddFolder={handleAddFolder}
+                    onAddLink={handleAddLink}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onMove={handleMove}
+                    onDragMove={handleDragMove}
+                    onTogglePin={handleTogglePin}
+                    isLast={i === data.tree.length - 1}
+                  />
+                ))}
+              </nav>
+            ) : (
+              <GridView
+                tree={data.tree}
+                path={gridPath}
+                onPathChange={setGridPath}
                 onAddFolder={handleAddFolder}
                 onAddLink={handleAddLink}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onMove={handleMove}
                 onDragMove={handleDragMove}
-                isLast={i === data.tree.length - 1}
+                onTogglePin={handleTogglePin}
               />
-            ))}
-          </nav>
-        ) : (
-          <GridView
-            tree={data.tree}
-            path={gridPath}
-            onPathChange={setGridPath}
-            onAddFolder={handleAddFolder}
-            onAddLink={handleAddLink}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onMove={handleMove}
-            onDragMove={handleDragMove}
-          />
+            )}
+          </>
         )}
+
         <div className="sidebar-footer">
           <button onClick={handleExport} title="データをファイルに保存">💾 バックアップ保存</button>
           <label className="btn-import" title="保存したファイルから復元">
@@ -206,7 +285,6 @@ function App() {
           </label>
         </div>
       </aside>
-
 
       {modal && (
         <Modal
