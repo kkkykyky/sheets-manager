@@ -31,6 +31,23 @@ function App() {
     persist({ ...data, tree: removeNode(data.tree, id) });
   };
 
+  // ドラッグ&ドロップによる移動
+  const handleDragMove = useCallback((fromId, toId) => {
+    const node = (() => {
+      const find = (tree) => {
+        for (const n of tree) {
+          if (n.id === fromId) return n;
+          if (n.children) { const f = find(n.children); if (f) return f; }
+        }
+      };
+      return find(data.tree);
+    })();
+    if (!node) return;
+    let newTree = removeNode(data.tree, fromId);
+    newTree = insertNode(newTree, toId, node);
+    persist({ ...data, tree: newTree });
+  }, [data, persist]);
+
   const handleModalSubmit = (values) => {
     if (!modal) return;
     const { type, targetId, node } = modal;
@@ -69,11 +86,15 @@ function App() {
   const handleImport = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!confirm('バックアップから復元すると、現在のデータが上書きされます。よろしいですか？')) {
+      e.target.value = '';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
         const imported = JSON.parse(ev.target.result);
-        if (imported.tree) { persist(imported); alert('インポート完了'); }
+        if (imported.tree) { persist(imported); alert('✅ 復元完了しました'); }
         else alert('無効なファイルです');
       } catch { alert('ファイルの読み込みに失敗しました'); }
     };
@@ -107,17 +128,20 @@ function App() {
     <div className="app">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h1>Sheets Manager</h1>
+          <div className="header-top">
+            <span className="app-logo">📊</span>
+            <h1>Sheets Manager</h1>
+          </div>
           <div className="root-actions">
-            <button className="btn-add" onClick={() => handleAddFolder('__root__')}>＋ フォルダ</button>
-            <button className="btn-add" onClick={() => handleAddLink('__root__')}>＋ リンク</button>
+            <button className="btn-add" onClick={() => handleAddFolder('__root__')}>📁 フォルダ追加</button>
+            <button className="btn-add" onClick={() => handleAddLink('__root__')}>🔗 リンク追加</button>
           </div>
         </div>
         <nav className="tree">
           {data.tree.length === 0 && (
             <p className="empty">フォルダまたはリンクを追加してください</p>
           )}
-          {data.tree.map((node) => (
+          {data.tree.map((node, i) => (
             <TreeNode
               key={node.id}
               node={node}
@@ -126,13 +150,15 @@ function App() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onMove={handleMove}
+              onDragMove={handleDragMove}
+              isLast={i === data.tree.length - 1}
             />
           ))}
         </nav>
         <div className="sidebar-footer">
-          <button onClick={handleExport}>エクスポート</button>
-          <label className="btn-import">
-            インポート
+          <button onClick={handleExport} title="データをファイルに保存">💾 バックアップ保存</button>
+          <label className="btn-import" title="保存したファイルから復元">
+            📂 バックアップから復元
             <input type="file" accept=".json" onChange={handleImport} hidden />
           </label>
         </div>
