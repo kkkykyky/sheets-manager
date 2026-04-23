@@ -10,6 +10,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'tree' | 'grid'
+  const [gridPath, setGridPath] = useState([]); // グリッドの現在地パス
 
   useEffect(() => {
     loadData().then((d) => {
@@ -25,6 +26,20 @@ function App() {
 
   const handleAddFolder = (parentId) => setModal({ type: 'addFolder', targetId: parentId });
   const handleAddLink = (parentId) => setModal({ type: 'addLink', targetId: parentId });
+
+  // ヘッダーボタン：グリッドモードなら現在のフォルダ内に追加
+  const handleAddFolderContextual = () => {
+    const targetId = (viewMode === 'grid' && gridPath.length > 0)
+      ? gridPath[gridPath.length - 1].id
+      : '__root__';
+    handleAddFolder(targetId);
+  };
+  const handleAddLinkContextual = () => {
+    const targetId = (viewMode === 'grid' && gridPath.length > 0)
+      ? gridPath[gridPath.length - 1].id
+      : '__root__';
+    handleAddLink(targetId);
+  };
   const handleEdit = (node) => setModal({ type: node.type === 'folder' ? 'editFolder' : 'editLink', node });
   const handleMove = (node) => setModal({ type: 'move', node });
 
@@ -147,8 +162,8 @@ function App() {
             </div>
           </div>
           <div className="root-actions">
-            <button className="btn-add" onClick={() => handleAddFolder('__root__')}>📁 フォルダ追加</button>
-            <button className="btn-add" onClick={() => handleAddLink('__root__')}>🔗 リンク追加</button>
+            <button className="btn-add" onClick={handleAddFolderContextual}>📁 フォルダ追加</button>
+            <button className="btn-add" onClick={handleAddLinkContextual}>🔗 リンク追加</button>
           </div>
         </div>
         {viewMode === 'tree' ? (
@@ -173,11 +188,14 @@ function App() {
         ) : (
           <GridView
             tree={data.tree}
+            path={gridPath}
+            onPathChange={setGridPath}
             onAddFolder={handleAddFolder}
             onAddLink={handleAddLink}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onMove={handleMove}
+            onDragMove={handleDragMove}
           />
         )}
         <div className="sidebar-footer">

@@ -1,24 +1,27 @@
 import { useState } from 'react';
 
-// フォルダの色テーマ
 const FOLDER_THEMES = [
-  { bg: '#e8f0fe', icon: '#1a73e8', emoji: '📁' },
-  { bg: '#e6f4ea', icon: '#34a853', emoji: '📁' },
-  { bg: '#fce8e6', icon: '#ea4335', emoji: '📁' },
-  { bg: '#fef7e0', icon: '#f29900', emoji: '📁' },
-  { bg: '#f3e8fd', icon: '#a142f4', emoji: '📁' },
-  { bg: '#e6f3fb', icon: '#039be5', emoji: '📁' },
+  { bg: '#e8f0fe', icon: '#1a73e8' },
+  { bg: '#e6f4ea', icon: '#34a853' },
+  { bg: '#fce8e6', icon: '#ea4335' },
+  { bg: '#fef7e0', icon: '#f29900' },
+  { bg: '#f3e8fd', icon: '#a142f4' },
+  { bg: '#e6f3fb', icon: '#039be5' },
 ];
 
-const LINK_THEME = { bg: '#e6f4ea', icon: '#34a853', emoji: '🔗' };
+const LINK_THEME = { bg: '#e6f4ea', icon: '#34a853' };
 
 function getTheme(index) {
   return FOLDER_THEMES[index % FOLDER_THEMES.length];
 }
 
-export default function GridView({ tree, onAddFolder, onAddLink, onEdit, onDelete, onMove }) {
-  // パス: [{ id, name }] のスタック
-  const [path, setPath] = useState([]);
+export default function GridView({
+  tree, path, onPathChange,
+  onAddFolder, onAddLink, onEdit, onDelete, onMove, onDragMove
+}) {
+  const [menuOpen, setMenuOpen] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
+  const [draggingId, setDraggingId] = useState(null);
 
   // 現在のフォルダの中身を取得
   const getCurrentItems = () => {
@@ -35,24 +38,57 @@ export default function GridView({ tree, onAddFolder, onAddLink, onEdit, onDelet
   const currentItems = getCurrentItems();
 
   const handleItemClick = (node) => {
+    if (menuOpen) { setMenuOpen(null); return; }
     if (node.type === 'folder') {
-      setPath([...path, { id: node.id, name: node.name }]);
+      onPathChange([...path, { id: node.id, name: node.name }]);
     } else {
       window.open(node.url, '_blank', 'noopener,noreferrer');
     }
   };
 
   const handleBreadcrumb = (index) => {
-    setPath(path.slice(0, index));
+    onPathChange(path.slice(0, index));
   };
 
-  const [menuOpen, setMenuOpen] = useState(null);
+  // ===== ドラッグ&ドロップ =====
+  const handleDragStart = (e, node) => {
+    e.dataTransfer.setData('dragNodeId', node.id);
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggingId(node.id);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingId(null);
+    setDragOverId(null);
+  };
+
+  const handleDragOver = (e, node) => {
+    if (node.type !== 'folder') return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverId(node.id);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverId(null);
+  };
+
+  const handleDrop = (e, node) => {
+    e.preventDefault();
+    setDragOverId(null);
+    setDraggingId(null);
+    if (node.type !== 'folder') return;
+    const draggedId = e.dataTransfer.getData('dragNodeId');
+    if (draggedId && draggedId !== node.id) {
+      onDragMove(draggedId, node.id);
+    }
+  };
 
   return (
     <div className="grid-view">
       {/* パンくずリスト */}
       <div className="breadcrumb">
-        <button className="breadcrumb-item root" onClick={() => setPath([])}>
+        <button className="breadcrumb-item root" onClick={() => onPathChange([])}>
           🏠 ホーム
         </button>
         {path.map((p, i) => (
@@ -66,6 +102,9 @@ export default function GridView({ tree, onAddFolder, onAddLink, onEdit, onDelet
             </button>
           </span>
         ))}
+        {path.length > 0 && (
+          <span className="breadcrumb-hint">← ここに追加されます</span>
+        )}
       </div>
 
       {/* アイコングリッド */}
@@ -79,22 +118,31 @@ export default function GridView({ tree, onAddFolder, onAddLink, onEdit, onDelet
         {currentItems.map((node, i) => {
           const isFolder = node.type === 'folder';
           const theme = isFolder ? getTheme(i) : LINK_THEME;
+          const isDragging = draggingId === node.id;
+          const isDragOver = dragOverId === node.id;
+
           return (
             <div key={node.id} className="icon-item">
               <div
-                className="icon-card"
+                className={`icon-card ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''}`}
                 style={{ background: theme.bg }}
                 onClick={() => handleItemClick(node)}
-                onContextMenu={(e) => { e.preventDefault(); setMenuOpen(menuOpen === node.id ? null : node.id); }}
+                draggable
+                onDragStart={(e) => handleDragStart(e, node)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => handleDragOver(e, node)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, node)}
               >
-                <span className="icon-emoji">{theme.emoji}</span>
+                <span className="icon-emoji">
+                  {isFolder ? '📁' : '🔗'}
+                </span>
                 {isFolder && node.children?.length > 0 && (
                   <span className="icon-badge">{node.children.length}</span>
                 )}
               </div>
               <span className="icon-label">{node.name}</span>
 
-              {/* 長押し or 右クリックメニュー */}
               <button
                 className="icon-menu-btn"
                 onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === node.id ? null : node.id); }}
