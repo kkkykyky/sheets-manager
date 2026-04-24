@@ -3,38 +3,53 @@
 import { supabase } from './supabase';
 
 const STORAGE_KEY = 'sheets-manager-data';
-const USER_ID = 'default';
 
 export const defaultData = {
   tree: [],
 };
 
 // Supabaseからロード（失敗時はlocalStorageにフォールバック）
-export async function loadData() {
+export async function loadData(userId = 'default') {
   try {
     const { data, error } = await supabase
       .from('trees')
       .select('data')
-      .eq('user_id', USER_ID)
+      .eq('user_id', userId)
       .single();
     if (error) throw error;
     const loaded = data.data;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(loaded));
     return loaded;
   } catch {
+    // ユーザーデータがない場合、'default'データを引き継ぎ
+    if (userId !== 'default') {
+      try {
+        const { data: defaultRow } = await supabase
+          .from('trees')
+          .select('data')
+          .eq('user_id', 'default')
+          .single();
+        if (defaultRow?.data) {
+          await saveData(defaultRow.data, userId);
+          return defaultRow.data;
+        }
+      } catch {}
+    }
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : defaultData;
   }
 }
 
 // Supabaseに保存（同時にlocalStorageにもキャッシュ）
-export async function saveData(data) {
+export async function saveData(data, userId = 'default') {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   try {
     await supabase
       .from('trees')
-      .update({ data, updated_at: new Date().toISOString() })
-      .eq('user_id', USER_ID);
+      .upsert(
+        { user_id: userId, data, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
+      );
   } catch (e) {
     console.warn('Supabase save failed, data saved locally:', e);
   }
