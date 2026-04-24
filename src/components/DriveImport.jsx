@@ -19,20 +19,31 @@ export default function DriveImport({ onImport, onClose }) {
       const token = session?.provider_token;
       if (!token) { setError('no_token'); setLoading(false); return; }
 
-      const res = await fetch(
-        'https://www.googleapis.com/drive/v3/files?' + new URLSearchParams({
+      // ページングで全件取得
+      const allFiles = [];
+      let pageToken = null;
+      do {
+        const params = {
           q: "mimeType='application/vnd.google-apps.spreadsheet' and trashed=false",
-          fields: 'files(id,name,webViewLink,modifiedTime)',
+          fields: 'nextPageToken,files(id,name,webViewLink,modifiedTime)',
           orderBy: 'modifiedTime desc',
-          pageSize: '100',
-        }),
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+          pageSize: '1000',
+        };
+        if (pageToken) params.pageToken = pageToken;
 
-      if (!res.ok) { setError('no_token'); setLoading(false); return; }
+        const res = await fetch(
+          'https://www.googleapis.com/drive/v3/files?' + new URLSearchParams(params),
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-      const data = await res.json();
-      setFiles(data.files || []);
+        if (!res.ok) { setError('no_token'); setLoading(false); return; }
+
+        const data = await res.json();
+        allFiles.push(...(data.files || []));
+        pageToken = data.nextPageToken || null;
+      } while (pageToken);
+
+      setFiles(allFiles);
     } catch {
       setError('fetch_failed');
     }
