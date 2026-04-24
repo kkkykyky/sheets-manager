@@ -964,6 +964,128 @@ body {
   border-color: var(--red);
 }
 
+/* ===== DRIVE IMPORT ===== */
+.btn-drive {
+  flex-basis: 100%;
+  background: var(--green-light);
+  color: var(--green);
+  border-color: var(--green);
+}
+.btn-drive:hover {
+  background: #c8e6c9;
+}
+
+.drive-modal {
+  width: 520px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.drive-loading, .drive-empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-sub);
+  font-size: 14px;
+}
+
+.drive-error {
+  padding: 16px 0;
+  text-align: center;
+  color: var(--text-sub);
+  font-size: 14px;
+  line-height: 2;
+}
+
+.btn-reauth {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.15s;
+}
+.btn-reauth:hover { background: var(--bg); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+.btn-retry {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background: var(--blue);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.drive-select-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+.drive-select-all label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text);
+}
+.drive-selected-count {
+  font-size: 12px;
+  color: var(--blue);
+  font-weight: 500;
+}
+
+.drive-file-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.drive-file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-size: 13.5px;
+}
+.drive-file-item:hover { background: var(--hover); }
+.drive-file-item.selected { background: var(--blue-light); }
+.drive-file-item input[type="checkbox"] { flex-shrink: 0; cursor: pointer; width: 15px; height: 15px; }
+.drive-file-icon { font-size: 18px; flex-shrink: 0; }
+.drive-file-name {
+  flex: 1;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.drive-file-date {
+  font-size: 11px;
+  color: var(--text-sub);
+  flex-shrink: 0;
+}
+
 /* ===== MOBILE ===== */
 @media (max-width: 600px) {
   .sidebar {

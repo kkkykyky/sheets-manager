@@ -6,6 +6,7 @@ import GridView from './components/GridView';
 import Modal from './components/Modal';
 import SearchResults from './components/SearchResults';
 import PinnedSection from './components/PinnedSection';
+import DriveImport from './components/DriveImport';
 import './App.css';
 
 // ツリー全体を検索して一致するノードとパスを返す
@@ -42,6 +43,7 @@ function App() {
   const [data, setData] = useState(defaultData);
   const [dataLoading, setDataLoading] = useState(false);
   const [modal, setModal] = useState(null);
+  const [driveImportOpen, setDriveImportOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid');
   const [gridPath, setGridPath] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,8 +80,34 @@ function App() {
   const handleLogin = () => {
     supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: window.location.origin,
+        scopes: 'https://www.googleapis.com/auth/drive.readonly',
+      },
     });
+  };
+
+  const handleDriveImport = (files) => {
+    const targetId = (viewMode === 'grid' && gridPath.length > 0)
+      ? gridPath[gridPath.length - 1].id : '__root__';
+
+    const newLinks = files.map(f => ({
+      id: `id-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      type: 'link',
+      name: f.name,
+      url: f.webViewLink,
+    }));
+
+    let newTree = data.tree;
+    if (targetId === '__root__') {
+      newTree = [...newTree, ...newLinks];
+    } else {
+      for (const link of newLinks) {
+        newTree = insertNode(newTree, targetId, link);
+      }
+    }
+    persist({ ...data, tree: newTree });
+    setDriveImportOpen(false);
   };
 
   const handleLogout = async () => {
@@ -290,6 +318,7 @@ function App() {
             <div className="root-actions">
               <button className="btn-add" onClick={handleAddFolderContextual}>📁 フォルダ追加</button>
               <button className="btn-add" onClick={handleAddLinkContextual}>🔗 リンク追加</button>
+              <button className="btn-add btn-drive" onClick={() => setDriveImportOpen(true)}>📥 Driveから読み込む</button>
             </div>
           )}
         </div>
@@ -358,6 +387,13 @@ function App() {
           folders={getAllFolders(data.tree, modal.node?.id)}
           onSubmit={handleModalSubmit}
           onClose={() => setModal(null)}
+        />
+      )}
+
+      {driveImportOpen && (
+        <DriveImport
+          onImport={handleDriveImport}
+          onClose={() => setDriveImportOpen(false)}
         />
       )}
     </div>
