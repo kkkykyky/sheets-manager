@@ -1,4 +1,4 @@
-export default function PinnedSection({ pinnedNodes, onTogglePin }) {
+export default function PinnedSection({ pinnedNodes, onTogglePin, onLinkOpen }) {
   if (pinnedNodes.length === 0) return null;
 
   return (
@@ -10,11 +10,14 @@ export default function PinnedSection({ pinnedNodes, onTogglePin }) {
             <div
               className="pinned-item-main"
               onClick={() => {
-                if (node.type === 'link') window.open(node.url, '_blank', 'noopener,noreferrer');
+                if (node.type === 'link') {
+                  if (onLinkOpen) onLinkOpen(node);
+                  else window.open(node.url, '_blank', 'noopener,noreferrer');
+                }
               }}
               style={{ cursor: node.type === 'link' ? 'pointer' : 'default' }}
             >
-              <span>{node.type === 'folder' ? '📁' : '🔗'}</span>
+              <span>{node.icon || (node.type === 'folder' ? '📁' : '🔗')}</span>
               <span className="pinned-item-name">{node.name}</span>
             </div>
             <button

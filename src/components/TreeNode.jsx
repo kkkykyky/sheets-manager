@@ -5,7 +5,8 @@ const getFolderIcon = (node, open) => node.icon || (open ? '📂' : '📁');
 export default function TreeNode({
   node, onAddFolder, onAddLink, onEdit, onDelete, onMove, onDragMove, onTogglePin,
   depth = 0, isLast = false,
-  selectionMode = false, selectedIds = new Set(), onToggleSelection
+  selectionMode = false, selectedIds = new Set(), onToggleSelection,
+  onLinkOpen,
 }) {
   const [open, setOpen] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -22,7 +23,10 @@ export default function TreeNode({
       return;
     }
     if (isFolder) setOpen((v) => !v);
-    else window.open(node.url, '_blank', 'noopener,noreferrer');
+    else {
+      if (onLinkOpen) onLinkOpen(node);
+      else window.open(node.url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   const handleMenuToggle = (e) => {
@@ -151,6 +155,7 @@ export default function TreeNode({
                 selectionMode={selectionMode}
                 selectedIds={selectedIds}
                 onToggleSelection={onToggleSelection}
+                onLinkOpen={onLinkOpen}
               />
             ))
           ) : (

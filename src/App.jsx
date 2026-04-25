@@ -564,6 +564,7 @@ function App() {
             <PinnedSection
               pinnedNodes={pinnedNodes}
               onTogglePin={handleTogglePin}
+              onLinkOpen={handleLinkOpen}
             />
             {viewMode === 'tree' ? (
               <nav className="tree">
@@ -585,6 +586,7 @@ function App() {
                     selectionMode={selectionMode}
                     selectedIds={selectedIds}
                     onToggleSelection={handleToggleSelection}
+                    onLinkOpen={handleLinkOpen}
                   />
                 ))}
               </nav>
