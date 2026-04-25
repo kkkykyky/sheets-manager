@@ -47,6 +47,8 @@ function App() {
   const [viewMode, setViewMode] = useState('grid');
   const [gridPath, setGridPath] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   // 認証状態の監視
   useEffect(() => {
@@ -85,6 +87,31 @@ function App() {
         scopes: 'https://www.googleapis.com/auth/drive.readonly',
       },
     });
+  };
+
+  const handleToggleSelection = useCallback((id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleCancelSelection = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`${selectedIds.size}件を削除しますか？`)) return;
+    let newTree = data.tree;
+    for (const id of selectedIds) {
+      newTree = removeNode(newTree, id);
+    }
+    persist({ ...data, tree: newTree });
+    setSelectedIds(new Set());
+    setSelectionMode(false);
   };
 
   const handleDriveImport = (files) => {
@@ -301,9 +328,11 @@ function App() {
             <h1>Sheets Manager</h1>
             <div className="view-toggle">
               <button className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
-                onClick={() => setViewMode('grid')} title="アイコン表示">⊞</button>
+                onClick={() => { setViewMode('grid'); handleCancelSelection(); }} title="アイコン表示">⊞</button>
               <button className={`toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
-                onClick={() => setViewMode('tree')} title="ツリー表示">☰</button>
+                onClick={() => { setViewMode('tree'); handleCancelSelection(); }} title="ツリー表示">☰</button>
+              <button className={`toggle-btn ${selectionMode ? 'active' : ''}`}
+                onClick={() => selectionMode ? handleCancelSelection() : setSelectionMode(true)} title="選択モード">☑</button>
             </div>
           </div>
 
@@ -330,13 +359,26 @@ function App() {
             )}
           </div>
 
-          {!isSearching && (
+          {!isSearching && !selectionMode && (
             <div className="root-actions">
               <div className="root-actions-row">
                 <button className="btn-add" onClick={handleAddFolderContextual}>📁 フォルダ追加</button>
                 <button className="btn-add" onClick={handleAddLinkContextual}>🔗 リンク追加</button>
               </div>
               <button className="btn-drive-import" onClick={() => setDriveImportOpen(true)}>📥 Driveから読み込む</button>
+            </div>
+          )}
+          {!isSearching && selectionMode && (
+            <div className="selection-bar">
+              <span className="selection-count">
+                {selectedIds.size > 0 ? `${selectedIds.size}件選択中` : 'アイテムをタップして選択'}
+              </span>
+              <div className="selection-actions">
+                <button className="btn-cancel-select" onClick={handleCancelSelection}>キャンセル</button>
+                <button className="btn-delete-selected" onClick={handleBulkDelete} disabled={selectedIds.size === 0}>
+                  🗑️ {selectedIds.size > 0 ? `${selectedIds.size}件削除` : '削除'}
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -370,6 +412,9 @@ function App() {
                     onDragMove={handleDragMove}
                     onTogglePin={handleTogglePin}
                     isLast={i === data.tree.length - 1}
+                    selectionMode={selectionMode}
+                    selectedIds={selectedIds}
+                    onToggleSelection={handleToggleSelection}
                   />
                 ))}
               </nav>
@@ -385,6 +430,9 @@ function App() {
                 onMove={handleMove}
                 onDragMove={handleDragMove}
                 onTogglePin={handleTogglePin}
+                selectionMode={selectionMode}
+                selectedIds={selectedIds}
+                onToggleSelection={handleToggleSelection}
               />
             )}
           </>

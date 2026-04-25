@@ -970,6 +970,94 @@ body {
   border-color: var(--red);
 }
 
+/* ===== SELECTION MODE ===== */
+.selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 4px 4px;
+  background: var(--blue-light);
+  border-radius: 10px;
+  margin-top: 2px;
+}
+
+.selection-count {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--blue);
+  flex: 1;
+}
+
+.selection-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-cancel-select {
+  padding: 5px 10px;
+  font-size: 12px;
+  background: var(--white);
+  color: var(--text-sub);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-cancel-select:hover { background: var(--hover); }
+
+.btn-delete-selected {
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-delete-selected:disabled {
+  background: #ccc;
+  cursor: default;
+}
+.btn-delete-selected:not(:disabled):hover { background: #c62828; }
+
+.icon-card.selected {
+  box-shadow: 0 0 0 3px var(--green), 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.icon-checkbox {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.tree-row.selected {
+  background: var(--blue-light);
+}
+
+.tree-checkbox {
+  font-size: 14px;
+  flex-shrink: 0;
+  padding: 2px 4px;
+}
+
+.breadcrumb-select-all {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.breadcrumb-select-all:hover { background: var(--blue-light); }
+
 /* ===== DRIVE IMPORT ===== */
 .btn-drive-import {
   width: 100%;

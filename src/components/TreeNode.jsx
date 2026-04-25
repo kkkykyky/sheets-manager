@@ -1,12 +1,11 @@
 import { useState } from 'react';
 
-// 深さに応じたフォルダの色
-const FOLDER_COLORS = ['#1a73e8', '#34a853', '#f29900', '#e37400', '#a142f4'];
 const getFolderIcon = (depth, open) => open ? '📂' : '📁';
 
 export default function TreeNode({
   node, onAddFolder, onAddLink, onEdit, onDelete, onMove, onDragMove, onTogglePin,
-  depth = 0, isLast = false
+  depth = 0, isLast = false,
+  selectionMode = false, selectedIds = new Set(), onToggleSelection
 }) {
   const [open, setOpen] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -15,8 +14,13 @@ export default function TreeNode({
 
   const isFolder = node.type === 'folder';
   const hasChildren = isFolder && node.children && node.children.length > 0;
+  const isSelected = selectedIds.has(node.id);
 
   const handleClick = () => {
+    if (selectionMode) {
+      onToggleSelection(node.id);
+      return;
+    }
     if (isFolder) setOpen((v) => !v);
     else window.open(node.url, '_blank', 'noopener,noreferrer');
   };
@@ -34,6 +38,7 @@ export default function TreeNode({
 
   // ===== ドラッグ&ドロップ =====
   const handleDragStart = (e) => {
+    if (selectionMode) { e.preventDefault(); return; }
     e.stopPropagation();
     e.dataTransfer.setData('dragNodeId', node.id);
     e.dataTransfer.effectAllowed = 'move';
@@ -43,7 +48,7 @@ export default function TreeNode({
   const handleDragEnd = () => setIsDragging(false);
 
   const handleDragOver = (e) => {
-    if (!isFolder) return;
+    if (selectionMode || !isFolder) return;
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
@@ -78,43 +83,52 @@ export default function TreeNode({
         {depth > 0 && <div className={`tree-branch ${isLast ? 'last' : ''}`} />}
 
         <div
-          className={`tree-row ${isFolder ? 'folder' : 'link'} ${dragOver ? 'drag-over' : ''} ${isDragging ? 'dragging' : ''}`}
+          className={`tree-row ${isFolder ? 'folder' : 'link'} ${dragOver ? 'drag-over' : ''} ${isDragging ? 'dragging' : ''} ${isSelected ? 'selected' : ''}`}
           onClick={handleClick}
-          draggable
+          draggable={!selectionMode}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <span className="drag-handle" title="ドラッグして移動">⠿</span>
+          {selectionMode ? (
+            <span className="tree-checkbox">{isSelected ? '✅' : '⬜'}</span>
+          ) : (
+            <span className="drag-handle" title="ドラッグして移動">⠿</span>
+          )}
           <span className="node-icon">
             {isFolder ? getFolderIcon(depth, open) : '🔗'}
           </span>
           <span className="tree-label">{node.name}</span>
-          <button
-            className={`pin-btn ${node.pinned ? 'pinned' : ''}`}
-            onClick={(e) => { e.stopPropagation(); onTogglePin(node.id); }}
-            title={node.pinned ? 'お気に入り解除' : 'お気に入り追加'}
-          >{node.pinned ? '⭐' : '☆'}</button>
 
-          <div className="tree-menu-wrap">
-            <button className="menu-btn" onClick={handleMenuToggle} title="メニュー">⋮</button>
-            {menuOpen && (
-              <div className="context-menu" onMouseLeave={() => setMenuOpen(false)}>
-                {isFolder && (
-                  <>
-                    <button onClick={(e) => handleMenuAction(e, () => onAddFolder(node.id))}>📁 フォルダを追加</button>
-                    <button onClick={(e) => handleMenuAction(e, () => onAddLink(node.id))}>🔗 リンクを追加</button>
-                    <hr />
-                  </>
+          {!selectionMode && (
+            <>
+              <button
+                className={`pin-btn ${node.pinned ? 'pinned' : ''}`}
+                onClick={(e) => { e.stopPropagation(); onTogglePin(node.id); }}
+                title={node.pinned ? 'お気に入り解除' : 'お気に入り追加'}
+              >{node.pinned ? '⭐' : '☆'}</button>
+
+              <div className="tree-menu-wrap">
+                <button className="menu-btn" onClick={handleMenuToggle} title="メニュー">⋮</button>
+                {menuOpen && (
+                  <div className="context-menu" onMouseLeave={() => setMenuOpen(false)}>
+                    {isFolder && (
+                      <>
+                        <button onClick={(e) => handleMenuAction(e, () => onAddFolder(node.id))}>📁 フォルダを追加</button>
+                        <button onClick={(e) => handleMenuAction(e, () => onAddLink(node.id))}>🔗 リンクを追加</button>
+                        <hr />
+                      </>
+                    )}
+                    <button onClick={(e) => handleMenuAction(e, () => onEdit(node))}>✏️ 編集</button>
+                    <button onClick={(e) => handleMenuAction(e, () => onMove(node))}>📦 移動先を選ぶ</button>
+                    <button className="danger" onClick={(e) => handleMenuAction(e, () => onDelete(node.id, node.name))}>🗑️ 削除</button>
+                  </div>
                 )}
-                <button onClick={(e) => handleMenuAction(e, () => onEdit(node))}>✏️ 編集</button>
-                <button onClick={(e) => handleMenuAction(e, () => onMove(node))}>📦 移動先を選ぶ</button>
-                <button className="danger" onClick={(e) => handleMenuAction(e, () => onDelete(node.id, node.name))}>🗑️ 削除</button>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -134,6 +148,9 @@ export default function TreeNode({
                 onTogglePin={onTogglePin}
                 depth={depth + 1}
                 isLast={i === node.children.length - 1}
+                selectionMode={selectionMode}
+                selectedIds={selectedIds}
+                onToggleSelection={onToggleSelection}
               />
             ))
           ) : (
