@@ -12,14 +12,55 @@
   --yellow: #fbbc04;
   --red: #ea4335;
   --text: #202124;
+  --text-main: #202124;
   --text-sub: #5f6368;
   --border: #e0e0e0;
   --hover: #f1f3f4;
+  --hover-bg: #f1f3f4;
   --bg: #f8f9fa;
   --white: #ffffff;
   --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
 }
+
+/* ===== DARK MODE ===== */
+[data-theme="dark"] {
+  --blue: #5b9cf6;
+  --blue-light: #1a2d50;
+  --green: #57bb77;
+  --green-light: #1a3328;
+  --yellow: #f9c84a;
+  --red: #f28b82;
+  --text: #e8eaed;
+  --text-main: #e8eaed;
+  --text-sub: #9aa0a6;
+  --border: #3c4043;
+  --hover: #35363a;
+  --hover-bg: #35363a;
+  --bg: #202124;
+  --white: #292a2d;
+  --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+}
+[data-theme="dark"] body { background: var(--bg); }
+[data-theme="dark"] .modal { background: #35363a; }
+[data-theme="dark"] .modal input,
+[data-theme="dark"] .modal select,
+[data-theme="dark"] .modal textarea {
+  background: #292a2d;
+  color: var(--text);
+  border-color: var(--border);
+}
+[data-theme="dark"] .modal input::placeholder { color: var(--text-sub); }
+[data-theme="dark"] .context-menu,
+[data-theme="dark"] .icon-context-menu { background: #35363a; border-color: var(--border); }
+[data-theme="dark"] .icon-card { box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+[data-theme="dark"] .login-card { background: #292a2d; }
+[data-theme="dark"] .drive-modal { background: #35363a; }
+[data-theme="dark"] .drive-file-item { border-color: var(--border); }
+[data-theme="dark"] .drive-file-item:hover { background: var(--hover); }
+[data-theme="dark"] .drive-file-item.selected { background: var(--blue-light); }
+[data-theme="dark"] .emoji-grid button:hover { background: var(--hover); }
 
 body {
   font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -626,6 +667,19 @@ body {
 }
 .icon-item:hover .icon-pin-btn { opacity: 1; }
 .icon-pin-btn.pinned { opacity: 1; }
+
+/* ===== DARK MODE TOGGLE ===== */
+.btn-dark-mode {
+  background: none;
+  border: none;
+  font-size: 17px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  color: var(--text-sub);
+}
+.btn-dark-mode:hover { background: var(--hover); }
 
 /* ===== VIEW TOGGLE ===== */
 .view-toggle {
@@ -1250,6 +1304,77 @@ body {
 }
 .btn-move-selected:disabled { opacity: 0.4; cursor: default; }
 .btn-move-selected:not(:disabled):hover { background: #d2e3fc; }
+
+/* ===== EMOJI PICKER (Modal) ===== */
+.emoji-picker-wrap { margin-top: 6px; }
+.emoji-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.emoji-preview {
+  font-size: 28px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.emoji-text-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 20px;
+  background: var(--white);
+  color: var(--text);
+  outline: none;
+}
+.emoji-text-input:focus { border-color: var(--blue); }
+.emoji-clear-btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-sub);
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.emoji-clear-btn:hover { background: var(--hover); }
+.emoji-category-label {
+  font-size: 10px;
+  color: var(--text-sub);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin: 6px 0 3px;
+  text-transform: uppercase;
+}
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.emoji-grid button {
+  font-size: 20px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.1s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.emoji-grid button:hover { background: var(--hover); transform: scale(1.2); }
+.emoji-grid button.active { background: var(--blue-light); outline: 2px solid var(--blue); }
 
 /* ===== COLOR PICKER (Modal) ===== */
 .color-picker {

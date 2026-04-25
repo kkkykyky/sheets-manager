@@ -162,7 +162,7 @@ export default function GridView({
                   <span className="icon-checkbox">{isSelected ? '✅' : '⬜'}</span>
                 ) : null}
                 <span className="icon-emoji" style={{ opacity: selectionMode ? 0.5 : 1 }}>
-                  {node.type === 'folder' ? '📁' : '🔗'}
+                  {node.icon || (node.type === 'folder' ? '📁' : '🔗')}
                 </span>
                 {!selectionMode && node.type === 'folder' && node.children?.length > 0 && (
                   <span className="icon-badge">{node.children.length}</span>

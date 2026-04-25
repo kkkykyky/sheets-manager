@@ -5,6 +5,29 @@ const FOLDER_COLORS = [
   '#fff3e0', '#fce4ec', '#e0f7fa', '#f1f8e9', '#ede7f6', '#e8eaf6',
 ];
 
+const EMOJI_CATEGORIES = [
+  {
+    label: 'フォルダ・整理',
+    emojis: ['📁','📂','🗂️','📦','🗃️','📋','🗄️','📌','📍','🗑️'],
+  },
+  {
+    label: '書類・データ',
+    emojis: ['📊','📈','📉','📄','📝','📑','📃','🗒️','📜','🔢'],
+  },
+  {
+    label: 'ビジネス・お金',
+    emojis: ['💰','💴','💵','💹','🏦','💳','🧾','💼','🏢','🛒'],
+  },
+  {
+    label: '状態・優先度',
+    emojis: ['⭐','🌟','✅','🔴','🟡','🟢','🔵','🟣','⚠️','🚨'],
+  },
+  {
+    label: 'その他',
+    emojis: ['💡','🚀','🎨','🔑','🔒','⚙️','🌐','🎯','🏆','🎁'],
+  },
+];
+
 export default function Modal({ modal, folders, onSubmit, onClose }) {
   const { type, node, ids } = modal;
 
@@ -12,6 +35,7 @@ export default function Modal({ modal, folders, onSubmit, onClose }) {
   const [url, setUrl] = useState(node?.url || '');
   const [color, setColor] = useState(node?.color || '');
   const [memo, setMemo] = useState(node?.memo || '');
+  const [icon, setIcon] = useState(node?.icon || '');
   const [targetId, setTargetId] = useState('__root__');
 
   const titles = {
@@ -23,6 +47,8 @@ export default function Modal({ modal, folders, onSubmit, onClose }) {
     bulkMove: `📦 ${ids?.length ?? 0}件を移動`,
   };
 
+  const defaultIcon = type === 'addFolder' || type === 'editFolder' ? '📁' : '🔗';
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (type === 'move' || type === 'bulkMove') {
@@ -30,7 +56,7 @@ export default function Modal({ modal, folders, onSubmit, onClose }) {
     } else {
       if (!name.trim()) return;
       if ((type === 'addLink' || type === 'editLink') && !url.trim()) return;
-      onSubmit({ name: name.trim(), url: url.trim(), color, memo: memo.trim() });
+      onSubmit({ name: name.trim(), url: url.trim(), color, memo: memo.trim(), icon });
     }
   };
 
@@ -64,6 +90,46 @@ export default function Modal({ modal, folders, onSubmit, onClose }) {
                 required
               />
               <small>特定シートタブのURL（#gid=...付き）も使用できます</small>
+            </div>
+          )}
+
+          {/* アイコン絵文字ピッカー */}
+          {type !== 'move' && type !== 'bulkMove' && (
+            <div className="form-group">
+              <label>アイコン</label>
+              <div className="emoji-picker-wrap">
+                <div className="emoji-input-row">
+                  <div className="emoji-preview">{icon || defaultIcon}</div>
+                  <input
+                    className="emoji-text-input"
+                    value={icon}
+                    onChange={(e) => setIcon(e.target.value)}
+                    placeholder="絵文字を直接入力..."
+                    maxLength={4}
+                  />
+                  {icon && (
+                    <button type="button" className="emoji-clear-btn" onClick={() => setIcon('')}>
+                      リセット
+                    </button>
+                  )}
+                </div>
+                {EMOJI_CATEGORIES.map(cat => (
+                  <div key={cat.label}>
+                    <div className="emoji-category-label">{cat.label}</div>
+                    <div className="emoji-grid">
+                      {cat.emojis.map(em => (
+                        <button
+                          key={em}
+                          type="button"
+                          className={icon === em ? 'active' : ''}
+                          onClick={() => setIcon(icon === em ? '' : em)}
+                          title={em}
+                        >{em}</button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

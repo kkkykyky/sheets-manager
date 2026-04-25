@@ -50,9 +50,16 @@ function App() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | { updated: number }
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('sm_dark') === '1');
   const [recentIds, setRecentIds] = useState(() => {
     try { return JSON.parse(localStorage.getItem('sm_recent') || '[]'); } catch { return []; }
   });
+
+  // ダークモード適用
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    localStorage.setItem('sm_dark', darkMode ? '1' : '0');
+  }, [darkMode]);
 
   // 認証状態の監視
   useEffect(() => {
@@ -297,17 +304,17 @@ function App() {
     const { type, targetId, node, ids } = modal;
 
     if (type === 'addFolder') {
-      const newNode = { id: genId(), type: 'folder', name: values.name, color: values.color || '', memo: values.memo || '', children: [] };
+      const newNode = { id: genId(), type: 'folder', name: values.name, icon: values.icon || '', color: values.color || '', memo: values.memo || '', children: [] };
       if (targetId === '__root__') persist({ ...data, tree: [...data.tree, newNode] });
       else persist({ ...data, tree: insertNode(data.tree, targetId, newNode) });
     } else if (type === 'addLink') {
-      const newNode = { id: genId(), type: 'link', name: values.name, url: values.url, memo: values.memo || '' };
+      const newNode = { id: genId(), type: 'link', name: values.name, url: values.url, icon: values.icon || '', memo: values.memo || '' };
       if (targetId === '__root__') persist({ ...data, tree: [...data.tree, newNode] });
       else persist({ ...data, tree: insertNode(data.tree, targetId, newNode) });
     } else if (type === 'editFolder') {
-      persist({ ...data, tree: updateNode(data.tree, node.id, { name: values.name, color: values.color || '', memo: values.memo || '' }) });
+      persist({ ...data, tree: updateNode(data.tree, node.id, { name: values.name, icon: values.icon || '', color: values.color || '', memo: values.memo || '' }) });
     } else if (type === 'editLink') {
-      persist({ ...data, tree: updateNode(data.tree, node.id, { name: values.name, url: values.url, memo: values.memo || '' }) });
+      persist({ ...data, tree: updateNode(data.tree, node.id, { name: values.name, url: values.url, icon: values.icon || '', memo: values.memo || '' }) });
     } else if (type === 'move') {
       let newTree = removeNode(data.tree, node.id);
       if (values.targetId === '__root__') newTree = [...newTree, node];
@@ -451,6 +458,11 @@ function App() {
           <div className="header-top">
             <span className="app-logo">📊</span>
             <h1>Sheets Manager</h1>
+            <button
+              className="btn-dark-mode"
+              onClick={() => setDarkMode(d => !d)}
+              title={darkMode ? 'ライトモードに切替' : 'ダークモードに切替'}
+            >{darkMode ? '☀️' : '🌙'}</button>
             <div className="view-toggle">
               <button className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
                 onClick={() => { setViewMode('grid'); handleCancelSelection(); }} title="アイコン表示">⊞</button>

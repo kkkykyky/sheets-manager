@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const getFolderIcon = (depth, open) => open ? '📂' : '📁';
+const getFolderIcon = (node, open) => node.icon || (open ? '📂' : '📁');
 
 export default function TreeNode({
   node, onAddFolder, onAddLink, onEdit, onDelete, onMove, onDragMove, onTogglePin,
@@ -98,7 +98,7 @@ export default function TreeNode({
             <span className="drag-handle" title="ドラッグして移動">⠿</span>
           )}
           <span className="node-icon">
-            {isFolder ? getFolderIcon(depth, open) : '🔗'}
+            {isFolder ? getFolderIcon(node, open) : (node.icon || '🔗')}
           </span>
           <span className="tree-label">{node.name}</span>
 
