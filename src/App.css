@@ -838,6 +838,11 @@ body {
   min-width: 170px;
   box-shadow: var(--shadow-md);
 }
+/* 左端カードのメニューは右寄せで表示 */
+.icon-context-menu.flip-right {
+  left: 0;
+  transform: none;
+}
 .icon-context-menu button {
   display: flex;
   align-items: center;
@@ -1060,7 +1065,7 @@ body {
 
 /* ===== DRIVE IMPORT ===== */
 .btn-drive-import {
-  width: 100%;
+  flex: 1;
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 500;
@@ -1190,6 +1195,25 @@ body {
   color: var(--text-sub);
   flex-shrink: 0;
 }
+
+/* ===== DRIVE SYNC BUTTON ===== */
+.btn-drive-sync {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid #34a853;
+  background: #e6f4ea;
+  color: #137333;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.btn-drive-sync:hover:not(:disabled) { background: #ceead6; }
+.btn-drive-sync:disabled { opacity: 0.6; cursor: default; }
+.btn-drive-sync.syncing { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ===== RECENT SECTION ===== */
 .recent-section { padding: 8px 12px 4px; }

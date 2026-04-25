@@ -25,6 +25,7 @@ export default function GridView({
   onLinkOpen,
 }) {
   const [menuOpen, setMenuOpen] = useState(null);
+  const [menuFlip, setMenuFlip] = useState(false); // true = right寄せ
   const [draggingId, setDraggingId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [dropPosition, setDropPosition] = useState('before'); // 'before'|'after'|'inside'
@@ -181,10 +182,17 @@ export default function GridView({
                   >{node.pinned ? '⭐' : '☆'}</button>
                   <button
                     className="icon-menu-btn"
-                    onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === node.id ? null : node.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (menuOpen === node.id) { setMenuOpen(null); return; }
+                      // 画面左端からの距離が200px未満なら右寄せ
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setMenuFlip(rect.left < 200);
+                      setMenuOpen(node.id);
+                    }}
                   >⋮</button>
                   {menuOpen === node.id && (
-                    <div className="icon-context-menu" onMouseLeave={() => setMenuOpen(null)}>
+                    <div className={`icon-context-menu ${menuFlip ? 'flip-right' : ''}`} onMouseLeave={() => setMenuOpen(null)}>
                       {node.type === 'folder' && (
                         <>
                           <button onClick={() => { setMenuOpen(null); onAddFolder(node.id); }}>📁 フォルダを追加</button>

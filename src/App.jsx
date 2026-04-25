@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { supabase, cacheProviderToken } from './supabase';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { supabase, cacheProviderToken, getCachedProviderToken } from './supabase';
 import { loadData, saveData, genId, removeNode, insertNode, updateNode, reorderNode, defaultData } from './store';
 import TreeNode from './components/TreeNode';
 import GridView from './components/GridView';
@@ -49,6 +49,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | { updated: number }
   const [recentIds, setRecentIds] = useState(() => {
     try { return JSON.parse(localStorage.getItem('sm_recent') || '[]'); } catch { return []; }
   });
@@ -132,6 +133,78 @@ function App() {
     if (selectedIds.size === 0) return;
     setModal({ type: 'bulkMove', ids: [...selectedIds] });
   };
+
+  const handleDriveSync = useCallback(async () => {
+    setSyncStatus('syncing');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.provider_token || getCachedProviderToken();
+      if (!token) { setSyncStatus({ error: 'token' }); return; }
+
+      // ツリー内の全リンクを収集 (id → { nodeId, fileId })
+      const linkMap = new Map(); // fileId → nodeId
+      const walk = (nodes) => {
+        for (const n of nodes) {
+          if (n.type === 'link' && n.url) {
+            const m = n.url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            if (m) linkMap.set(m[1], n.id);
+          }
+          if (n.children) walk(n.children);
+        }
+      };
+      walk(data.tree);
+
+      if (linkMap.size === 0) { setSyncStatus({ updated: 0 }); return; }
+
+      // Drive APIでファイル名を一括取得
+      const fileIds = [...linkMap.keys()];
+      const q = fileIds.map(id => `'${id}' in parents or id='${id}'`);
+      // ファイルIDで直接取得 (idクエリ)
+      const queryStr = fileIds.map(id => `id='${id}'`).join(' or ');
+      const params = new URLSearchParams({
+        q: `(${queryStr}) and trashed=false`,
+        fields: 'files(id,name)',
+        pageSize: '1000',
+      });
+
+      const res = await fetch(
+        'https://www.googleapis.com/drive/v3/files?' + params,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!res.ok) { setSyncStatus({ error: 'fetch' }); return; }
+
+      const driveData = await res.json();
+      const driveFiles = driveData.files || [];
+
+      // 名前が変わっているものを更新
+      let newTree = data.tree;
+      let updatedCount = 0;
+      for (const file of driveFiles) {
+        const nodeId = linkMap.get(file.id);
+        if (!nodeId) continue;
+        // 現在の名前を確認
+        const findNode = (nodes) => {
+          for (const n of nodes) {
+            if (n.id === nodeId) return n;
+            if (n.children) { const f = findNode(n.children); if (f) return f; }
+          }
+        };
+        const node = findNode(newTree);
+        if (node && node.name !== file.name) {
+          newTree = updateNode(newTree, nodeId, { name: file.name });
+          updatedCount++;
+        }
+      }
+
+      if (updatedCount > 0) persist({ ...data, tree: newTree });
+      setSyncStatus({ updated: updatedCount });
+    } catch (e) {
+      console.error(e);
+      setSyncStatus({ error: 'fetch' });
+    }
+    // 3秒後にリセット
+    setTimeout(() => setSyncStatus(null), 3000);
+  }, [data, persist]);
 
   const handleDriveImport = (files) => {
     const targetId = (viewMode === 'grid' && gridPath.length > 0)
@@ -417,7 +490,19 @@ function App() {
                 <button className="btn-add" onClick={handleAddFolderContextual}>📁 フォルダ追加</button>
                 <button className="btn-add" onClick={handleAddLinkContextual}>🔗 リンク追加</button>
               </div>
-              <button className="btn-drive-import" onClick={() => setDriveImportOpen(true)}>📥 Driveから読み込む</button>
+              <div className="root-actions-row">
+                <button className="btn-drive-import" onClick={() => setDriveImportOpen(true)}>📥 Driveから読み込む</button>
+                <button
+                  className={`btn-drive-sync ${syncStatus === 'syncing' ? 'syncing' : ''}`}
+                  onClick={handleDriveSync}
+                  disabled={syncStatus === 'syncing'}
+                  title="Driveのファイル名変更を同期"
+                >
+                  {syncStatus === 'syncing' ? '🔄' :
+                   syncStatus?.updated !== undefined ? `✅ ${syncStatus.updated}件更新` :
+                   syncStatus?.error ? '⚠️ 失敗' : '🔄 名前を同期'}
+                </button>
+              </div>
             </div>
           )}
           {!isSearching && selectionMode && (
