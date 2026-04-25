@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 
-export default function DriveImport({ onImport, onClose }) {
+function extractFileId(url) {
+  const m = url?.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  return m ? m[1] : null;
+}
+
+export default function DriveImport({ onImport, onClose, existingFileIds = new Set() }) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); // null | 'no_token' | 'fetch_failed'
@@ -43,7 +48,9 @@ export default function DriveImport({ onImport, onClose }) {
         pageToken = data.nextPageToken || null;
       } while (pageToken);
 
-      setFiles(allFiles);
+      // 既存のシートを除外
+      const newFiles = allFiles.filter(f => !existingFileIds.has(extractFileId(f.webViewLink)));
+      setFiles(newFiles);
     } catch {
       setError('fetch_failed');
     }

@@ -79,6 +79,12 @@ body {
 
 .root-actions {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.root-actions-row {
+  display: flex;
   gap: 8px;
 }
 
@@ -965,14 +971,25 @@ body {
 }
 
 /* ===== DRIVE IMPORT ===== */
-.btn-drive {
-  flex-basis: 100%;
-  background: var(--green-light);
+.btn-drive-import {
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: none;
   color: var(--green);
-  border-color: var(--green);
+  border: 1px solid var(--green);
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
-.btn-drive:hover {
-  background: #c8e6c9;
+.btn-drive-import:hover {
+  background: var(--green-light);
 }
 
 .drive-modal {

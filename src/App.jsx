@@ -221,6 +221,22 @@ function App() {
     e.target.value = '';
   };
 
+  // 既存のリンクURLから Drive ファイルIDを抽出
+  const getExistingFileIds = (tree) => {
+    const ids = new Set();
+    const walk = (nodes) => {
+      for (const n of nodes) {
+        if (n.type === 'link' && n.url) {
+          const m = n.url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+          if (m) ids.add(m[1]);
+        }
+        if (n.children) walk(n.children);
+      }
+    };
+    walk(tree);
+    return ids;
+  };
+
   const getAllFolders = (tree, excludeId) => {
     const result = [{ id: '__root__', name: 'トップ（ルート）' }];
     const walk = (nodes) => {
@@ -316,9 +332,11 @@ function App() {
 
           {!isSearching && (
             <div className="root-actions">
-              <button className="btn-add" onClick={handleAddFolderContextual}>📁 フォルダ追加</button>
-              <button className="btn-add" onClick={handleAddLinkContextual}>🔗 リンク追加</button>
-              <button className="btn-add btn-drive" onClick={() => setDriveImportOpen(true)}>📥 Driveから読み込む</button>
+              <div className="root-actions-row">
+                <button className="btn-add" onClick={handleAddFolderContextual}>📁 フォルダ追加</button>
+                <button className="btn-add" onClick={handleAddLinkContextual}>🔗 リンク追加</button>
+              </div>
+              <button className="btn-drive-import" onClick={() => setDriveImportOpen(true)}>📥 Driveから読み込む</button>
             </div>
           )}
         </div>
@@ -394,6 +412,7 @@ function App() {
         <DriveImport
           onImport={handleDriveImport}
           onClose={() => setDriveImportOpen(false)}
+          existingFileIds={getExistingFileIds(data.tree)}
         />
       )}
     </div>
