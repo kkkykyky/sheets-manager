@@ -113,3 +113,30 @@ export function updateNode(tree, id, updates) {
     return n;
   });
 }
+
+// 同じ階層内で並び替え（fromId を targetId の前後に移動）
+export function reorderNode(tree, fromId, targetId, position = 'before') {
+  // fromノードを探して取り出す
+  let fromNode = null;
+  const remove = (nodes) => {
+    for (const n of nodes) {
+      if (n.id === fromId) { fromNode = n; }
+      if (n.children) n.children = remove(n.children);
+    }
+    return nodes.filter(n => n.id !== fromId);
+  };
+
+  const reorder = (nodes) => {
+    const idx = nodes.findIndex(n => n.id === targetId);
+    if (idx !== -1) {
+      const insertAt = position === 'before' ? idx : idx + 1;
+      nodes.splice(insertAt, 0, fromNode);
+      return nodes;
+    }
+    return nodes.map(n => n.children ? { ...n, children: reorder([...n.children]) } : n);
+  };
+
+  let newTree = remove([...tree.map(n => ({ ...n }))]);
+  if (fromNode) newTree = reorder(newTree);
+  return newTree;
+}

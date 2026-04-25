@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../supabase';
+import { supabase, getCachedProviderToken } from '../supabase';
 
 function extractFileId(url) {
   const m = url?.match(/\/d\/([a-zA-Z0-9-_]+)/);
@@ -21,7 +21,7 @@ export default function DriveImport({ onImport, onClose, existingFileIds = new S
     setError(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.provider_token;
+      const token = session?.provider_token || getCachedProviderToken();
       if (!token) { setError('no_token'); setLoading(false); return; }
 
       // ページングで全件取得

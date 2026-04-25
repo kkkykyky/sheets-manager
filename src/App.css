@@ -1191,6 +1191,97 @@ body {
   flex-shrink: 0;
 }
 
+/* ===== RECENT SECTION ===== */
+.recent-section { padding: 8px 12px 4px; }
+.recent-list { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-main);
+  text-align: left;
+  width: 100%;
+  transition: background 0.15s;
+}
+.recent-item:hover { background: var(--hover-bg); }
+.recent-icon { font-size: 12px; flex-shrink: 0; }
+.recent-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ===== BULK MOVE BUTTON ===== */
+.btn-move-selected {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: none;
+  background: #e8f0fe;
+  color: #1a73e8;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn-move-selected:disabled { opacity: 0.4; cursor: default; }
+.btn-move-selected:not(:disabled):hover { background: #d2e3fc; }
+
+/* ===== COLOR PICKER (Modal) ===== */
+.color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s, border-color 0.1s;
+}
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.active { border-color: #333; transform: scale(1.15); }
+
+/* ===== DRAG REORDER INDICATORS ===== */
+.icon-item.drop-before .icon-card::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 0; bottom: 0;
+  width: 3px;
+  background: #1a73e8;
+  border-radius: 3px;
+}
+.icon-item.drop-after .icon-card::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 0; bottom: 0;
+  width: 3px;
+  background: #1a73e8;
+  border-radius: 3px;
+}
+.icon-card { position: relative; }
+
+/* ===== ITEM MEMO TOOLTIP ===== */
+.icon-label-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.icon-memo {
+  font-size: 10px;
+  color: var(--text-sub);
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
 /* ===== MOBILE ===== */
 @media (max-width: 600px) {
   .sidebar {

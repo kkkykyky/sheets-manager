@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { supabase } from './supabase';
-import { loadData, saveData, genId, removeNode, insertNode, updateNode, defaultData } from './store';
+import { supabase, cacheProviderToken } from './supabase';
+import { loadData, saveData, genId, removeNode, insertNode, updateNode, reorderNode, defaultData } from './store';
 import TreeNode from './components/TreeNode';
 import GridView from './components/GridView';
 import Modal from './components/Modal';
@@ -49,16 +49,21 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [recentIds, setRecentIds] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('sm_recent') || '[]'); } catch { return []; }
+  });
 
   // 認証状態の監視
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.provider_token) cacheProviderToken(session.provider_token);
       setAuthLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.provider_token) cacheProviderToken(session.provider_token);
     });
 
     return () => subscription.unsubscribe();
@@ -112,6 +117,20 @@ function App() {
     persist({ ...data, tree: newTree });
     setSelectedIds(new Set());
     setSelectionMode(false);
+  };
+
+  const handleLinkOpen = useCallback((node) => {
+    setRecentIds(prev => {
+      const next = [node.id, ...prev.filter(id => id !== node.id)].slice(0, 10);
+      localStorage.setItem('sm_recent', JSON.stringify(next));
+      return next;
+    });
+    window.open(node.url, '_blank', 'noopener,noreferrer');
+  }, []);
+
+  const handleBulkMove = () => {
+    if (selectedIds.size === 0) return;
+    setModal({ type: 'bulkMove', ids: [...selectedIds] });
   };
 
   const handleDriveImport = (files) => {
@@ -181,6 +200,11 @@ function App() {
     persist({ ...data, tree: updateNode(data.tree, id, { pinned: !node.pinned }) });
   }, [data, persist]);
 
+  const handleReorder = useCallback((fromId, targetId, position) => {
+    const newTree = reorderNode(data.tree, fromId, targetId, position);
+    persist({ ...data, tree: newTree });
+  }, [data, persist]);
+
   const handleDragMove = useCallback((fromId, toId) => {
     const find = (tree) => {
       for (const n of tree) {
@@ -197,25 +221,43 @@ function App() {
 
   const handleModalSubmit = (values) => {
     if (!modal) return;
-    const { type, targetId, node } = modal;
+    const { type, targetId, node, ids } = modal;
 
     if (type === 'addFolder') {
-      const newNode = { id: genId(), type: 'folder', name: values.name, children: [] };
+      const newNode = { id: genId(), type: 'folder', name: values.name, color: values.color || '', memo: values.memo || '', children: [] };
       if (targetId === '__root__') persist({ ...data, tree: [...data.tree, newNode] });
       else persist({ ...data, tree: insertNode(data.tree, targetId, newNode) });
     } else if (type === 'addLink') {
-      const newNode = { id: genId(), type: 'link', name: values.name, url: values.url };
+      const newNode = { id: genId(), type: 'link', name: values.name, url: values.url, memo: values.memo || '' };
       if (targetId === '__root__') persist({ ...data, tree: [...data.tree, newNode] });
       else persist({ ...data, tree: insertNode(data.tree, targetId, newNode) });
     } else if (type === 'editFolder') {
-      persist({ ...data, tree: updateNode(data.tree, node.id, { name: values.name }) });
+      persist({ ...data, tree: updateNode(data.tree, node.id, { name: values.name, color: values.color || '', memo: values.memo || '' }) });
     } else if (type === 'editLink') {
-      persist({ ...data, tree: updateNode(data.tree, node.id, { name: values.name, url: values.url }) });
+      persist({ ...data, tree: updateNode(data.tree, node.id, { name: values.name, url: values.url, memo: values.memo || '' }) });
     } else if (type === 'move') {
       let newTree = removeNode(data.tree, node.id);
       if (values.targetId === '__root__') newTree = [...newTree, node];
       else newTree = insertNode(newTree, values.targetId, node);
       persist({ ...data, tree: newTree });
+    } else if (type === 'bulkMove') {
+      // collect nodes first, then remove, then insert
+      const nodesToMove = ids.map(id => {
+        const find = (tree) => {
+          for (const n of tree) {
+            if (n.id === id) return n;
+            if (n.children) { const f = find(n.children); if (f) return f; }
+          }
+        };
+        return find(data.tree);
+      }).filter(Boolean);
+      let newTree = data.tree;
+      for (const id of ids) newTree = removeNode(newTree, id);
+      if (values.targetId === '__root__') newTree = [...newTree, ...nodesToMove];
+      else for (const n of nodesToMove) newTree = insertNode(newTree, values.targetId, n);
+      persist({ ...data, tree: newTree });
+      setSelectedIds(new Set());
+      setSelectionMode(false);
     }
     setModal(null);
   };
@@ -284,6 +326,16 @@ function App() {
   );
 
   const pinnedNodes = useMemo(() => getPinnedNodes(data.tree), [data.tree]);
+
+  const recentNodes = useMemo(() => {
+    const find = (tree, id) => {
+      for (const n of tree) {
+        if (n.id === id) return n;
+        if (n.children) { const f = find(n.children, id); if (f) return f; }
+      }
+    };
+    return recentIds.map(id => find(data.tree, id)).filter(Boolean);
+  }, [recentIds, data.tree]);
 
   const isSearching = searchQuery.trim().length > 0;
 
@@ -375,6 +427,9 @@ function App() {
               </span>
               <div className="selection-actions">
                 <button className="btn-cancel-select" onClick={handleCancelSelection}>キャンセル</button>
+                <button className="btn-move-selected" onClick={handleBulkMove} disabled={selectedIds.size === 0}>
+                  📦 移動
+                </button>
                 <button className="btn-delete-selected" onClick={handleBulkDelete} disabled={selectedIds.size === 0}>
                   🗑️ {selectedIds.size > 0 ? `${selectedIds.size}件削除` : '削除'}
                 </button>
@@ -391,6 +446,24 @@ function App() {
           />
         ) : (
           <>
+            {recentNodes.length > 0 && !selectionMode && (
+              <div className="recent-section">
+                <div className="pinned-title">🕐 最近開いたシート</div>
+                <div className="recent-list">
+                  {recentNodes.map(n => (
+                    <button
+                      key={n.id}
+                      className="recent-item"
+                      onClick={() => handleLinkOpen(n)}
+                      title={n.memo || n.url}
+                    >
+                      <span className="recent-icon">🔗</span>
+                      <span className="recent-name">{n.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <PinnedSection
               pinnedNodes={pinnedNodes}
               onTogglePin={handleTogglePin}
@@ -429,7 +502,9 @@ function App() {
                 onDelete={handleDelete}
                 onMove={handleMove}
                 onDragMove={handleDragMove}
+                onReorder={handleReorder}
                 onTogglePin={handleTogglePin}
+                onLinkOpen={handleLinkOpen}
                 selectionMode={selectionMode}
                 selectedIds={selectedIds}
                 onToggleSelection={handleToggleSelection}
@@ -450,7 +525,7 @@ function App() {
       {modal && (
         <Modal
           modal={modal}
-          folders={getAllFolders(data.tree, modal.node?.id)}
+          folders={getAllFolders(data.tree, modal.type === 'bulkMove' ? null : modal.node?.id)}
           onSubmit={handleModalSubmit}
           onClose={() => setModal(null)}
         />
