@@ -985,6 +985,30 @@ body {
   border-color: #bbb;
 }
 
+/* ログイン・フッターの法的リンク */
+.login-legal {
+  margin-top: 16px;
+  font-size: 11px;
+  color: var(--text-sub);
+  line-height: 1.6;
+}
+.login-legal a { color: var(--blue); text-decoration: none; }
+.login-legal a:hover { text-decoration: underline; }
+
+.footer-legal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-sub);
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+.footer-legal a { color: var(--text-sub); text-decoration: none; }
+.footer-legal a:hover { color: var(--blue); text-decoration: underline; }
+
 /* ===== USER INFO ===== */
 .user-info {
   display: flex;

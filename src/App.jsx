@@ -445,6 +445,12 @@ function App() {
             </svg>
             Googleでログイン
           </button>
+          <p className="login-legal">
+            ログインすることで
+            <a href="/terms.html" target="_blank" rel="noopener">利用規約</a>および
+            <a href="/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
+            に同意したものとみなします
+          </p>
         </div>
       </div>
     );
@@ -618,6 +624,11 @@ function App() {
             📂 バックアップから復元
             <input type="file" accept=".json" onChange={handleImport} hidden />
           </label>
+          <div className="footer-legal">
+            <a href="/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
+            <span>·</span>
+            <a href="/terms.html" target="_blank" rel="noopener">利用規約</a>
+          </div>
         </div>
       </aside>
 

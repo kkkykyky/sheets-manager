@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a73e8"/>
+      <stop offset="100%" style="stop-color:#0d47a1"/>
+    </linearGradient>
+    <linearGradient id="sheet" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#e8f0fe;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+  <!-- 背景 -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- シートカード -->
+  <rect x="100" y="96" width="312" height="320" rx="18" fill="url(#sheet)"/>
+  <!-- ヘッダー行（緑） -->
+  <rect x="100" y="96" width="312" height="56" rx="18" fill="#34a853"/>
+  <rect x="100" y="130" width="312" height="22" fill="#34a853"/>
+  <!-- グリッド横線 -->
+  <line x1="100" y1="208" x2="412" y2="208" stroke="#c5cae9" stroke-width="2"/>
+  <line x1="100" y1="260" x2="412" y2="260" stroke="#c5cae9" stroke-width="2"/>
+  <line x1="100" y1="312" x2="412" y2="312" stroke="#c5cae9" stroke-width="2"/>
+  <line x1="100" y1="364" x2="412" y2="364" stroke="#c5cae9" stroke-width="2"/>
+  <!-- グリッド縦線 -->
+  <line x1="204" y1="152" x2="204" y2="416" stroke="#c5cae9" stroke-width="2"/>
+  <line x1="308" y1="152" x2="308" y2="416" stroke="#c5cae9" stroke-width="2"/>
+  <!-- ヘッダーテキスト風 -->
+  <rect x="118" y="112" width="68" height="10" rx="5" fill="rgba(255,255,255,0.9)"/>
+  <rect x="222" y="112" width="68" height="10" rx="5" fill="rgba(255,255,255,0.7)"/>
+  <rect x="326" y="112" width="68" height="10" rx="5" fill="rgba(255,255,255,0.7)"/>
+  <!-- セルデータ風 -->
+  <rect x="118" y="166" width="62" height="8" rx="4" fill="#1a73e8" opacity="0.7"/>
+  <rect x="222" y="166" width="48" height="8" rx="4" fill="#5f6368" opacity="0.4"/>
+  <rect x="326" y="166" width="54" height="8" rx="4" fill="#34a853" opacity="0.6"/>
+  <rect x="118" y="218" width="50" height="8" rx="4" fill="#5f6368" opacity="0.4"/>
+  <rect x="222" y="218" width="62" height="8" rx="4" fill="#1a73e8" opacity="0.5"/>
+  <rect x="326" y="218" width="40" height="8" rx="4" fill="#ea4335" opacity="0.5"/>
+  <rect x="118" y="270" width="58" height="8" rx="4" fill="#34a853" opacity="0.5"/>
+  <rect x="222" y="270" width="44" height="8" rx="4" fill="#5f6368" opacity="0.4"/>
+  <rect x="326" y="270" width="60" height="8" rx="4" fill="#1a73e8" opacity="0.5"/>
+  <rect x="118" y="322" width="44" height="8" rx="4" fill="#5f6368" opacity="0.4"/>
+  <rect x="222" y="322" width="56" height="8" rx="4" fill="#ea4335" opacity="0.4"/>
+  <rect x="326" y="322" width="48" height="8" rx="4" fill="#34a853" opacity="0.5"/>
+  <rect x="118" y="374" width="54" height="8" rx="4" fill="#1a73e8" opacity="0.5"/>
+  <rect x="222" y="374" width="42" height="8" rx="4" fill="#34a853" opacity="0.4"/>
+  <rect x="326" y="374" width="58" height="8" rx="4" fill="#5f6368" opacity="0.4"/>
+</svg>
