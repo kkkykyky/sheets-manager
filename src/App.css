@@ -464,6 +464,12 @@ body {
     animation: sheet-up 0.22s ease-out;
     will-change: transform;
   }
+  /* iOS auto-zoom prevention: font-size must be ≥16px on inputs */
+  .form-group input,
+  .form-group select,
+  .emoji-text-input {
+    font-size: 16px;
+  }
   @keyframes sheet-up {
     from { transform: translateY(40px); opacity: 0.5; }
     to   { transform: translateY(0);    opacity: 1; }
