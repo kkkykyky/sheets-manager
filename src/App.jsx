@@ -450,25 +450,48 @@ function App() {
   if (!user) {
     return (
       <div className="login-screen">
-        <div className="login-card">
-          <span className="login-logo">📊</span>
-          <h1>Sheets Manager</h1>
-          <p className="login-desc">スプレッドシートを整理・管理するツール</p>
-          <button className="btn-google-login" onClick={handleLogin}>
-            <svg width="18" height="18" viewBox="0 0 18 18">
-              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
-              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-              <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
-            </svg>
-            Googleでログイン
-          </button>
-          <p className="login-legal">
-            ログインすることで
-            <a href="/terms.html" target="_blank" rel="noopener">利用規約</a>および
-            <a href="/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
-            に同意したものとみなします
-          </p>
+        <div className="login-hero">
+          <div className="login-hero-inner">
+            <div className="login-brand">
+              <img src="/icon-512.svg" alt="Sheets Manager" className="login-app-icon" />
+              <span className="login-app-name">Sheets Manager</span>
+            </div>
+            <h1 className="login-headline">
+              散らばったスプレッドシートを<br />すっきり整理
+            </h1>
+            <p className="login-sub">Googleスプレッドシートのリンクをフォルダで管理。<br />どこからでも素早くアクセス。</p>
+            <ul className="login-features">
+              <li><span>📁</span>フォルダで階層管理・色分け</li>
+              <li><span>⭐</span>お気に入りピン留め</li>
+              <li><span>🔍</span>名前で即座に検索</li>
+              <li><span>📥</span>Driveから一括インポート</li>
+              <li><span>🌙</span>ダークモード対応</li>
+              <li><span>📱</span>スマホにインストール可能（PWA）</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="login-panel">
+          <div className="login-card">
+            <img src="/icon-512.svg" alt="" className="login-card-icon" />
+            <h2>ログイン</h2>
+            <p className="login-desc">Googleアカウントで無料で始められます</p>
+            <button className="btn-google-login" onClick={handleLogin}>
+              <svg width="18" height="18" viewBox="0 0 18 18">
+                <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+                <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+                <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+              </svg>
+              Googleでログイン
+            </button>
+            <p className="login-legal">
+              ログインすることで
+              <a href="/terms.html" target="_blank" rel="noopener">利用規約</a>および
+              <a href="/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
+              に同意したものとみなします
+            </p>
+          </div>
         </div>
       </div>
     );
