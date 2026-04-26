@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const FOLDER_COLORS = [
   '#e8f0fe', '#e6f4ea', '#fce8e6', '#fef7e0', '#f3e8fd', '#e6f3fb',
@@ -38,6 +38,27 @@ export default function Modal({ modal, folders, onSubmit, onClose }) {
   const [icon, setIcon] = useState(node?.icon || '');
   const [targetId, setTargetId] = useState('__root__');
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const modalRef = useRef(null);
+
+  // iOS Safari: キーボード表示時にモーダルをキーボードの上に追従
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const el = modalRef.current;
+      if (!el) return;
+      const offsetFromBottom = window.innerHeight - vv.height - vv.offsetTop;
+      el.style.transform = offsetFromBottom > 0
+        ? `translateY(-${offsetFromBottom}px)`
+        : '';
+    };
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
 
   const titles = {
     addFolder: '📁 フォルダを追加',
@@ -63,7 +84,7 @@ export default function Modal({ modal, folders, onSubmit, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal" ref={modalRef} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{titles[type]}</h3>
           <button type="button" className="modal-close-btn" onClick={onClose} aria-label="閉じる">✕</button>
