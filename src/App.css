@@ -154,6 +154,7 @@ body {
 .tree {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 8px 8px;
 }
 
@@ -164,6 +165,7 @@ body {
 .tree-row-wrap {
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 
 .tree-indent {
@@ -213,6 +215,7 @@ body {
 
 .tree-row {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
