@@ -7,6 +7,8 @@ import Modal from './components/Modal';
 import SearchResults from './components/SearchResults';
 import PinnedSection from './components/PinnedSection';
 import DriveImport from './components/DriveImport';
+import Toast from './components/Toast';
+import ConfirmDialog from './components/ConfirmDialog';
 import './App.css';
 
 // ツリー全体を検索して一致するノードとパスを返す
@@ -49,7 +51,22 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | { updated: number }
+  const [syncStatus, setSyncStatus] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  const [confirmDialog, setConfirmDialog] = useState(null); // { message, okLabel, danger, onConfirm }
+
+  const showToast = useCallback((message, type = 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+  }, []);
+
+  const removeToast = useCallback((id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  const showConfirm = useCallback((message, onConfirm, { okLabel = '削除', danger = true } = {}) => {
+    setConfirmDialog({ message, okLabel, danger, onConfirm });
+  }, []);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('sm_dark') === '1');
   const [recentIds, setRecentIds] = useState(() => {
     try { return JSON.parse(localStorage.getItem('sm_recent') || '[]'); } catch { return []; }
@@ -117,14 +134,14 @@ function App() {
 
   const handleBulkDelete = () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`${selectedIds.size}件を削除しますか？`)) return;
-    let newTree = data.tree;
-    for (const id of selectedIds) {
-      newTree = removeNode(newTree, id);
-    }
-    persist({ ...data, tree: newTree });
-    setSelectedIds(new Set());
-    setSelectionMode(false);
+    showConfirm(`${selectedIds.size}件を削除しますか？`, () => {
+      let newTree = data.tree;
+      for (const id of selectedIds) newTree = removeNode(newTree, id);
+      persist({ ...data, tree: newTree });
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+      showToast(`${selectedIds.size}件を削除しました`, 'success');
+    });
   };
 
   const handleLinkOpen = useCallback((node) => {
@@ -261,8 +278,10 @@ function App() {
   const handleMove = (node) => setModal({ type: 'move', node });
 
   const handleDelete = (id, name) => {
-    if (!confirm(`「${name}」を削除しますか？`)) return;
-    persist({ ...data, tree: removeNode(data.tree, id) });
+    showConfirm(`「${name}」を削除しますか？`, () => {
+      persist({ ...data, tree: removeNode(data.tree, id) });
+      showToast(`「${name}」を削除しました`, 'success');
+    });
   };
 
   // お気に入りトグル
@@ -355,19 +374,18 @@ function App() {
   const handleImport = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!confirm('バックアップから復元すると、現在のデータが上書きされます。よろしいですか？')) {
-      e.target.value = ''; return;
-    }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const imported = JSON.parse(ev.target.result);
-        if (imported.tree) { persist(imported); alert('✅ 復元完了しました'); }
-        else alert('無効なファイルです');
-      } catch { alert('ファイルの読み込みに失敗しました'); }
-    };
-    reader.readAsText(file);
     e.target.value = '';
+    showConfirm('バックアップから復元すると、現在のデータが上書きされます。よろしいですか？', () => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const imported = JSON.parse(ev.target.result);
+          if (imported.tree) { persist(imported); showToast('復元完了しました', 'success'); }
+          else showToast('無効なファイルです', 'error');
+        } catch { showToast('ファイルの読み込みに失敗しました', 'error'); }
+      };
+      reader.readAsText(file);
+    }, { okLabel: '復元する', danger: true });
   };
 
   // 既存のリンクURLから Drive ファイルIDを抽出
@@ -648,6 +666,13 @@ function App() {
           existingFileIds={getExistingFileIds(data.tree)}
         />
       )}
+
+      <ConfirmDialog
+        dialog={confirmDialog}
+        onConfirm={() => { confirmDialog?.onConfirm(); setConfirmDialog(null); }}
+        onCancel={() => setConfirmDialog(null)}
+      />
+      <Toast toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }
