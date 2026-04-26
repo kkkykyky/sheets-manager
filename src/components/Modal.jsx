@@ -37,6 +37,7 @@ export default function Modal({ modal, folders, onSubmit, onClose }) {
   const [memo, setMemo] = useState(node?.memo || '');
   const [icon, setIcon] = useState(node?.icon || '');
   const [targetId, setTargetId] = useState('__root__');
+  const [emojiOpen, setEmojiOpen] = useState(false);
 
   const titles = {
     addFolder: '📁 フォルダを追加',
@@ -99,7 +100,12 @@ export default function Modal({ modal, folders, onSubmit, onClose }) {
           {/* アイコン絵文字ピッカー */}
           {type !== 'move' && type !== 'bulkMove' && (
             <div className="form-group">
-              <label>アイコン</label>
+              <div className="emoji-label-row">
+                <label>アイコン</label>
+                <button type="button" className="emoji-toggle-btn" onClick={() => setEmojiOpen(v => !v)}>
+                  {emojiOpen ? '▲ 閉じる' : '▼ 一覧から選ぶ'}
+                </button>
+              </div>
               <div className="emoji-picker-wrap">
                 <div className="emoji-input-row">
                   <div className="emoji-preview">{icon || defaultIcon}</div>
@@ -116,7 +122,7 @@ export default function Modal({ modal, folders, onSubmit, onClose }) {
                     </button>
                   )}
                 </div>
-                {EMOJI_CATEGORIES.map(cat => (
+                {emojiOpen && EMOJI_CATEGORIES.map(cat => (
                   <div key={cat.label}>
                     <div className="emoji-category-label">{cat.label}</div>
                     <div className="emoji-grid">
