@@ -1630,3 +1630,39 @@ body {
     font-size: 14px;
   }
 }
+
+/* ===== AD BANNER ===== */
+.ad-banner {
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+  min-height: 60px;
+  background: var(--white);
+}
+
+.ad-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-sub);
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(0,0,0,0.03) 4px,
+    rgba(0,0,0,0.03) 8px
+  );
+  border-radius: 4px;
+  min-height: 60px;
+  border: 1px dashed var(--border);
+}
+
+[data-theme="dark"] .ad-placeholder {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(255,255,255,0.03) 4px,
+    rgba(255,255,255,0.03) 8px
+  );
+}

@@ -9,6 +9,7 @@ import PinnedSection from './components/PinnedSection';
 import DriveImport from './components/DriveImport';
 import Toast from './components/Toast';
 import ConfirmDialog from './components/ConfirmDialog';
+import AdBanner from './components/AdBanner';
 import './App.css';
 
 // ツリー全体を検索して一致するノードとパスを返す
@@ -658,6 +659,8 @@ function App() {
             )}
           </>
         )}
+
+        <AdBanner />
 
         <div className="sidebar-footer">
           <button onClick={handleExport} title="データをファイルに保存">💾 バックアップ保存</button>
