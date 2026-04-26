@@ -446,6 +446,7 @@ body {
   max-width: 92vw;
   max-height: 90dvh;
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: 0 12px 48px rgba(0,0,0,0.2);
 }
 
@@ -1535,7 +1536,7 @@ body {
 .btn-move-selected:not(:disabled):hover { background: #d2e3fc; }
 
 /* ===== EMOJI PICKER (Modal) ===== */
-.emoji-picker-wrap { margin-top: 6px; }
+.emoji-picker-wrap { margin-top: 6px; max-width: 100%; overflow: hidden; }
 .emoji-input-row {
   display: flex;
   gap: 8px;
