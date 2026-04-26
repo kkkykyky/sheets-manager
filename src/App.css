@@ -453,15 +453,38 @@ body {
   }
 }
 
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
 .modal h3 {
   font-size: 17px;
   font-weight: 600;
-  margin-bottom: 20px;
   color: var(--text);
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
+.modal-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--hover);
+  color: var(--text-sub);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.modal-close-btn:hover { background: var(--border); }
 
 .form-group {
   margin-bottom: 16px;

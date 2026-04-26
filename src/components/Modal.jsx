@@ -63,7 +63,10 @@ export default function Modal({ modal, folders, onSubmit, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3>{titles[type]}</h3>
+        <div className="modal-header">
+          <h3>{titles[type]}</h3>
+          <button type="button" className="modal-close-btn" onClick={onClose} aria-label="閉じる">✕</button>
+        </div>
         <form onSubmit={handleSubmit}>
           {type !== 'move' && type !== 'bulkMove' && (
             <div className="form-group">
